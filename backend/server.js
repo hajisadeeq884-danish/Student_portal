@@ -27,10 +27,18 @@ app.get("/", (req, res) => {
 });
 
 // ✅ Connect MongoDB
+//mongoose.connect(process.env.DB_STRING, { dbName: "studentPortal" })
+  //.then(() => console.log("✅ Connected to MongoDB"))
+  //.catch(err => console.error("❌ MongoDB connection error:", err));
+
+// ✅ Start server
+//app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+
+// ✅ Connect MongoDB
 mongoose.connect(process.env.DB_STRING, { dbName: "studentPortal" })
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB connection error:", err));
 
-// ✅ Start server
-app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+// ✅ Export the app (for Vercel)
+module.exports = app;
 
