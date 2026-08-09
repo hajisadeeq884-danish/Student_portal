@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f4f8;
+    }
+    h1 {
+      color: #333;
+      margin-top: 100px;
+      font-size: 36px;
+    }
+    .login-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 50px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 2px solid #333;
+      padding: 15px 30px;
+      cursor: pointer;
+      font-size: 18px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .btn:hover {
+      background-color: #333;
+      color: white;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>Student Portal</h1>
+  <div class="login-buttons">
+    <div class="btn" onclick="window.location.href='admin-login.html'">Admin Login</div>
+    <div class="btn" onclick="window.location.href='student-login.html'">Student Login</div>
+  </div>
+</body>
+</html>
