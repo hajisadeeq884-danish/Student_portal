@@ -5,13 +5,21 @@ const path = require("path");
 require("dotenv").config();
 
 const app = express();
+
+// Middleware
 app.use(express.json());
-app.use(cors());
 
-// ✅ Serve static frontend files
-app.use(express.static(path.join(__dirname, "../frontend/static")));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://studentportal-one-wheat.vercel.app"
+    ],
+    credentials: true
+  })
+);
 
-// ✅ Routes
+// Routes
 const authRoutes = require("./routes/auth");
 app.use("/auth", authRoutes);
 
@@ -21,24 +29,28 @@ app.use("/courses", courseRoutes);
 const adminRoutes = require("./routes/admin");
 app.use("/admin", adminRoutes);
 
-// ✅ Root route — show Student Portal homepage
+// Health check
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/static/index.html"));
+  res.json({
+    message: "Student Portal API is running"
+  });
 });
 
-// ✅ Connect MongoDB
-mongoose.connect(process.env.DB_STRING, { dbName: "studentPortal" })
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
+// MongoDB
+mongoose
+  .connect(process.env.DB_STRING, {
+    dbName: "studentPortal"
+  })
+  .then(() => {
+    console.log("✅ Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+  });
 
-// ✅ Start server
-app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+// Render provides PORT through environment variable
+const PORT = process.env.PORT || 5000;
 
-// ✅ Connect MongoDB
-// mongoose.connect(process.env.DB_STRING, { dbName: "studentPortal" })
-//   .then(() => console.log("✅ Connected to MongoDB"))
-//   .catch(err => console.error("❌ MongoDB connection error:", err));
-
-// ✅ Export the app (for Vercel)
-// module.exports = app;
-
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
