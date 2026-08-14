@@ -1,405 +1,1008 @@
 import React, { useEffect, useState } from "react";
 
+const API_URL =
+  "https://student-portal-backend-401n.onrender.com";
+
 function Admin() {
+  const [pendingStudents, setPendingStudents] = useState([]);
   const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState([]);
 
-  const [editingStudent, setEditingStudent] = useState(null);
-  const [newName, setNewName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-
-  const [courseTitle, setCourseTitle] = useState("");
-  const [courseDescription, setCourseDescription] = useState("");
-  const [courseInstructor, setCourseInstructor] = useState("");
-  const [addingCourse, setAddingCourse] = useState(false);
+  const [loadingPending, setLoadingPending] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+  const [loadingCourses, setLoadingCourses] = useState(true);
 
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  // ==========================================
+  // CHECK ADMIN
+  // ==========================================
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
+    if (!token || role !== "admin") {
+      window.location.href = "/";
     }
+  }, [token, role]);
 
-    fetch(
-      "https://student-portal-backend-401n.onrender.com/admin/students",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setStudents(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching students:", err);
-        setLoading(false);
-      });
-  }, [token]);
 
-  const addCourse = async () => {
-    if (!courseTitle || !courseDescription || !courseInstructor) {
-      alert("Please fill all course fields.");
-      return;
-    }
+  // ==========================================
+  // FETCH PENDING STUDENTS
+  // ==========================================
 
-    setAddingCourse(true);
-
+  const fetchPendingStudents = async () => {
     try {
-      const res = await fetch(
-        "https://student-portal-backend-401n.onrender.com/courses/add",
+      setLoadingPending(true);
+
+      const response = await fetch(
+        `${API_URL}/admin/pending-students`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to load pending students"
+        );
+      }
+
+      setPendingStudents(
+        Array.isArray(data) ? data : []
+      );
+
+    } catch (error) {
+      console.error("Pending students error:", error);
+      setPendingStudents([]);
+    } finally {
+      setLoadingPending(false);
+    }
+  };
+
+
+  // ==========================================
+  // FETCH ALL STUDENTS
+  // ==========================================
+
+  const fetchStudents = async () => {
+    try {
+      setLoadingStudents(true);
+
+      const response = await fetch(
+        `${API_URL}/admin/students`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to load students"
+        );
+      }
+
+      setStudents(
+        Array.isArray(data) ? data : []
+      );
+
+    } catch (error) {
+      console.error("Students error:", error);
+      setStudents([]);
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+
+  // ==========================================
+  // FETCH COURSES
+  // ==========================================
+
+  const fetchCourses = async () => {
+    try {
+      setLoadingCourses(true);
+
+      const response = await fetch(
+        `${API_URL}/admin/courses`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to load courses"
+        );
+      }
+
+      setCourses(
+        Array.isArray(data) ? data : []
+      );
+
+    } catch (error) {
+      console.error("Courses error:", error);
+      setCourses([]);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+
+  // ==========================================
+  // LOAD DATA
+  // ==========================================
+
+  const loadData = () => {
+    if (!token || role !== "admin") {
+      return;
+    }
+
+    fetchPendingStudents();
+    fetchStudents();
+    fetchCourses();
+  };
+
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+
+  // ==========================================
+  // CREATE NOTIFICATION
+  // ==========================================
+
+  const createNotification = async (
+    studentId,
+    title,
+    message,
+    type
+  ) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/notifications`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            title: courseTitle,
-            description: courseDescription,
-            instructor: courseInstructor,
-          }),
+            userId: studentId,
+            title,
+            message,
+            type
+          })
         }
       );
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        alert(data.message || data.error || "Failed to add course.");
-        return;
+      if (!response.ok) {
+        console.error(
+          "Notification error:",
+          data
+        );
       }
 
-      alert("Course added successfully!");
-
-      setCourseTitle("");
-      setCourseDescription("");
-      setCourseInstructor("");
-    } catch (err) {
-      console.error("Add course error:", err);
-      alert("Failed to add course.");
-    } finally {
-      setAddingCourse(false);
+    } catch (error) {
+      console.error(
+        "Create notification error:",
+        error
+      );
     }
   };
 
-  const openEditModal = (student) => {
-    setEditingStudent(student);
-    setNewName(student.name);
-    setNewEmail(student.email);
-  };
 
-  const saveEdit = async () => {
-    if (!editingStudent) return;
+  // ==========================================
+  // APPROVE STUDENT
+  // ==========================================
 
-    try {
-      const res = await fetch(
-        `https://student-portal-backend-401n.onrender.com/admin/students/${editingStudent._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: newName,
-            email: newEmail,
-          }),
-        }
-      );
+  const approveStudent = async (student) => {
+    const confirmApprove = window.confirm(
+      `Approve ${student.name}?`
+    );
 
-      const msg = await res.json();
-
-      if (!res.ok) {
-        alert(msg.message || msg.error || "Failed to update student.");
-        return;
-      }
-
-      alert(msg.message || "Student updated successfully.");
-
-      setStudents((prev) =>
-        prev.map((s) =>
-          s._id === editingStudent._id
-            ? { ...s, name: newName, email: newEmail }
-            : s
-        )
-      );
-
-      setEditingStudent(null);
-    } catch (err) {
-      console.error("Update error:", err);
-      alert("Failed to update student.");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this student?")) {
+    if (!confirmApprove) {
       return;
     }
 
     try {
-      const res = await fetch(
-        `https://student-portal-backend-401n.onrender.com/admin/students/${id}`,
+      const response = await fetch(
+        `${API_URL}/admin/students/${student._id}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to approve student"
+        );
+      }
+
+      // CREATE APPROVAL NOTIFICATION
+      await createNotification(
+        student._id,
+        "Account Approved",
+        "Congratulations! Your student account has been approved by the administrator.",
+        "success"
+      );
+
+      alert(
+        "Student approved successfully!"
+      );
+
+      loadData();
+
+    } catch (error) {
+      console.error(
+        "Approve error:",
+        error
+      );
+
+      alert(error.message);
+    }
+  };
+
+
+  // ==========================================
+  // REJECT STUDENT
+  // ==========================================
+
+  const rejectStudent = async (student) => {
+    const confirmReject = window.confirm(
+      `Reject ${student.name}?`
+    );
+
+    if (!confirmReject) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/admin/students/${student._id}/reject`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to reject student"
+        );
+      }
+
+      // CREATE REJECTION NOTIFICATION
+      await createNotification(
+        student._id,
+        "Application Rejected",
+        "Your student application has been rejected by the administrator. Please contact the administrator for more information.",
+        "error"
+      );
+
+      alert(
+        "Student rejected."
+      );
+
+      loadData();
+
+    } catch (error) {
+      console.error(
+        "Reject error:",
+        error
+      );
+
+      alert(error.message);
+    }
+  };
+
+
+  // ==========================================
+  // DELETE STUDENT
+  // ==========================================
+
+  const deleteStudent = async (student) => {
+    const confirmDelete = window.confirm(
+      `Delete ${student.name}?`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/admin/students/${student._id}`,
         {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+            "Content-Type": "application/json"
+          }
         }
       );
 
-      const msg = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        alert(msg.message || msg.error || "Failed to delete student.");
-        return;
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Failed to delete student"
+        );
       }
 
-      alert(msg.message || "Student deleted successfully.");
+      alert(
+        "Student deleted successfully."
+      );
 
-      setStudents((prev) => prev.filter((s) => s._id !== id));
-    } catch (err) {
-      console.error("Delete error:", err);
-      alert("Failed to delete student.");
+      loadData();
+
+    } catch (error) {
+      console.error(
+        "Delete error:",
+        error
+      );
+
+      alert(error.message);
     }
   };
 
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+
+    window.location.href = "/";
+  };
+
+
+  // ==========================================
+  // PAGE
+  // ==========================================
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#111827",
-        color: "white",
-        padding: "40px",
-        boxSizing: "border-box",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
-        }}
-      >
-        <h2
-          style={{
-            textAlign: "center",
-            fontSize: "36px",
-            color: "white",
-            marginBottom: "35px",
-          }}
-        >
-          Admin Dashboard
-        </h2>
+    <div style={pageStyle}>
 
-        {/* Add Course */}
-        <div
-          style={{
-            backgroundColor: "#1f2937",
-            border: "1px solid #374151",
-            borderRadius: "15px",
-            padding: "25px",
-            marginBottom: "35px",
-          }}
-        >
-          <h3
-            style={{
-              color: "white",
-              fontSize: "25px",
-              marginBottom: "20px",
-            }}
-          >
-            Add New Course
-          </h3>
+      {/* HEADER */}
 
-          <input
-            type="text"
-            placeholder="Course Title"
-            value={courseTitle}
-            onChange={(e) => setCourseTitle(e.target.value)}
-            style={inputStyle}
-          />
+      <div style={headerStyle}>
 
-          <input
-            type="text"
-            placeholder="Course Description"
-            value={courseDescription}
-            onChange={(e) => setCourseDescription(e.target.value)}
-            style={inputStyle}
-          />
+        <div>
+          <h1 style={mainHeadingStyle}>
+            Admin Dashboard
+          </h1>
 
-          <input
-            type="text"
-            placeholder="Instructor"
-            value={courseInstructor}
-            onChange={(e) => setCourseInstructor(e.target.value)}
-            style={inputStyle}
-          />
+          <p style={welcomeStyle}>
+            Manage students, approvals and courses.
+          </p>
+        </div>
+
+        <div style={headerButtons}>
 
           <button
-            onClick={addCourse}
-            disabled={addingCourse}
-            style={buttonStyle}
+            onClick={loadData}
+            style={refreshButton}
           >
-            {addingCourse ? "Adding..." : "Add Course"}
+            🔄 Refresh
           </button>
+
+          <button
+            onClick={logout}
+            style={logoutButton}
+          >
+            Logout
+          </button>
+
         </div>
 
-        {/* Students */}
-        <div
-          style={{
-            backgroundColor: "#1f2937",
-            border: "1px solid #374151",
-            borderRadius: "15px",
-            padding: "25px",
-          }}
-        >
-          <h3
-            style={{
-              color: "white",
-              fontSize: "25px",
-              marginBottom: "20px",
-            }}
-          >
-            Students
-          </h3>
-
-          {loading ? (
-            <p style={{ color: "#d1d5db" }}>Loading students...</p>
-          ) : students.length === 0 ? (
-            <p style={{ color: "#d1d5db" }}>No students found.</p>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  color: "white",
-                }}
-              >
-                <thead>
-                  <tr style={{ backgroundColor: "#374151" }}>
-                    <th style={cellStyle}>ID</th>
-                    <th style={cellStyle}>Name</th>
-                    <th style={cellStyle}>Email</th>
-                    <th style={cellStyle}>Actions</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {students.map((student) => (
-                    <tr key={student._id}>
-                      <td style={cellStyle}>{student._id}</td>
-                      <td style={cellStyle}>{student.name}</td>
-                      <td style={cellStyle}>{student.email}</td>
-
-                      <td style={cellStyle}>
-                        <button
-                          onClick={() => openEditModal(student)}
-                          style={smallButtonStyle}
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(student._id)}
-                          style={smallButtonStyle}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Edit Student */}
-        {editingStudent && (
-          <div
-            style={{
-              backgroundColor: "#1f2937",
-              border: "1px solid #374151",
-              borderRadius: "15px",
-              padding: "25px",
-              marginTop: "25px",
-            }}
-          >
-            <h3 style={{ color: "white" }}>Edit Student</h3>
-
-            <input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Name"
-              style={inputStyle}
-            />
-
-            <input
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="Email"
-              style={inputStyle}
-            />
-
-            <button onClick={saveEdit} style={buttonStyle}>
-              Save
-            </button>
-
-            <button
-              onClick={() => setEditingStudent(null)}
-              style={smallButtonStyle}
-            >
-              Cancel
-            </button>
-          </div>
-        )}
       </div>
+
+
+      {/* =====================================
+          PENDING STUDENTS
+      ===================================== */}
+
+      <section style={sectionStyle}>
+
+        <h2 style={sectionHeading}>
+          🟡 Pending Student Approvals
+        </h2>
+
+        {loadingPending ? (
+
+          <div style={emptyBox}>
+            Loading pending students...
+          </div>
+
+        ) : pendingStudents.length === 0 ? (
+
+          <div style={emptyBox}>
+            ✅ No pending student requests.
+          </div>
+
+        ) : (
+
+          <div style={tableWrapper}>
+
+            <table style={tableStyle}>
+
+              <thead>
+                <tr style={tableHeadRow}>
+
+                  <th style={thStyle}>
+                    Name
+                  </th>
+
+                  <th style={thStyle}>
+                    Email
+                  </th>
+
+                  <th style={thStyle}>
+                    Phone
+                  </th>
+
+                  <th style={thStyle}>
+                    Department
+                  </th>
+
+                  <th style={thStyle}>
+                    Semester
+                  </th>
+
+                  <th style={thStyle}>
+                    Roll Number
+                  </th>
+
+                  <th style={thStyle}>
+                    College
+                  </th>
+
+                  <th style={thStyle}>
+                    Action
+                  </th>
+
+                </tr>
+              </thead>
+
+              <tbody>
+
+                {pendingStudents.map(
+                  (student) => (
+
+                    <tr key={student._id}>
+
+                      <td style={tdStyle}>
+                        {student.name}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.email}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.phone || "N/A"}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.department || "N/A"}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.semester || "N/A"}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.rollNumber || "N/A"}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.college || "N/A"}
+                      </td>
+
+                      <td style={tdStyle}>
+
+                        <button
+                          onClick={() =>
+                            approveStudent(student)
+                          }
+                          style={approveButton}
+                        >
+                          ✓ Approve
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            rejectStudent(student)
+                          }
+                          style={rejectButton}
+                        >
+                          ✕ Reject
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
+
+      </section>
+
+
+      {/* =====================================
+          COURSES
+      ===================================== */}
+
+      <section style={sectionStyle}>
+
+        <h2 style={sectionHeading}>
+          📚 Available Courses
+        </h2>
+
+        {loadingCourses ? (
+
+          <div style={emptyBox}>
+            Loading courses...
+          </div>
+
+        ) : courses.length === 0 ? (
+
+          <div style={emptyBox}>
+            No courses available.
+          </div>
+
+        ) : (
+
+          <div style={courseGrid}>
+
+            {courses.map(
+              (course) => (
+
+                <div
+                  key={course._id}
+                  style={courseCard}
+                >
+
+                  <h3 style={courseTitle}>
+                    {course.title}
+                  </h3>
+
+                  <p style={courseDescription}>
+                    {course.description ||
+                      "No description"}
+                  </p>
+
+                  <p style={instructorText}>
+                    <strong>
+                      Instructor:
+                    </strong>{" "}
+                    {course.instructor ||
+                      "Not assigned"}
+                  </p>
+
+                </div>
+
+              )
+            )}
+
+          </div>
+
+        )}
+
+      </section>
+
+
+      {/* =====================================
+          ALL STUDENTS
+      ===================================== */}
+
+      <section style={sectionStyle}>
+
+        <h2 style={sectionHeading}>
+          👨‍🎓 All Students
+        </h2>
+
+        {loadingStudents ? (
+
+          <div style={emptyBox}>
+            Loading students...
+          </div>
+
+        ) : students.length === 0 ? (
+
+          <div style={emptyBox}>
+            No students found.
+          </div>
+
+        ) : (
+
+          <div style={tableWrapper}>
+
+            <table style={tableStyle}>
+
+              <thead>
+
+                <tr style={tableHeadRow}>
+
+                  <th style={thStyle}>
+                    Name
+                  </th>
+
+                  <th style={thStyle}>
+                    Email
+                  </th>
+
+                  <th style={thStyle}>
+                    Department
+                  </th>
+
+                  <th style={thStyle}>
+                    Semester
+                  </th>
+
+                  <th style={thStyle}>
+                    Status
+                  </th>
+
+                  <th style={thStyle}>
+                    Action
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {students.map(
+                  (student) => (
+
+                    <tr key={student._id}>
+
+                      <td style={tdStyle}>
+                        {student.name}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.email}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.department ||
+                          "Not provided"}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {student.semester ||
+                          "Not provided"}
+                      </td>
+
+                      <td style={tdStyle}>
+
+                        <span
+                          style={
+                            student.approvalStatus ===
+                            "approved"
+                              ? approvedBadge
+                              : student.approvalStatus ===
+                                "rejected"
+                              ? rejectedBadge
+                              : pendingBadge
+                          }
+                        >
+                          {student.approvalStatus ||
+                            "pending"}
+                        </span>
+
+                      </td>
+
+                      <td style={tdStyle}>
+
+                        <button
+                          onClick={() =>
+                            deleteStudent(student)
+                          }
+                          style={deleteButton}
+                        >
+                          🗑 Delete
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
+
+      </section>
+
     </div>
   );
 }
 
-const inputStyle = {
-  display: "block",
-  width: "100%",
-  maxWidth: "600px",
+
+// =====================================================
+// STYLES
+// =====================================================
+
+const pageStyle = {
+  minHeight: "100vh",
+  background:
+    "linear-gradient(135deg, #0f172a, #172033)",
+  color: "#ffffff",
+  padding: "30px",
   boxSizing: "border-box",
-  padding: "13px",
-  marginBottom: "15px",
-  borderRadius: "8px",
-  border: "1px solid #4b5563",
-  backgroundColor: "#111827",
-  color: "white",
-  fontSize: "16px",
+  fontFamily:
+    "Arial, Helvetica, sans-serif"
 };
 
-const buttonStyle = {
-  padding: "12px 25px",
-  borderRadius: "8px",
+
+const headerStyle = {
+  maxWidth: "1250px",
+  margin: "0 auto 35px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "20px"
+};
+
+
+const mainHeadingStyle = {
+  fontSize: "48px",
+  margin: "0",
+  color: "#ffffff"
+};
+
+
+const welcomeStyle = {
+  color: "#cbd5e1",
+  fontSize: "18px",
+  marginTop: "8px"
+};
+
+
+const headerButtons = {
+  display: "flex",
+  gap: "12px"
+};
+
+
+const refreshButton = {
+  padding: "14px 25px",
+  background: "#2563eb",
+  color: "#ffffff",
   border: "none",
-  backgroundColor: "#2563eb",
-  color: "white",
-  fontSize: "16px",
+  borderRadius: "10px",
+  fontSize: "17px",
   fontWeight: "bold",
-  cursor: "pointer",
+  cursor: "pointer"
 };
 
-const smallButtonStyle = {
-  padding: "8px 15px",
-  margin: "4px",
-  borderRadius: "6px",
-  border: "1px solid #4b5563",
-  backgroundColor: "#374151",
-  color: "white",
-  cursor: "pointer",
+
+const logoutButton = {
+  padding: "14px 25px",
+  background: "#dc2626",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "10px",
+  fontSize: "17px",
+  fontWeight: "bold",
+  cursor: "pointer"
 };
 
-const cellStyle = {
-  padding: "12px",
-  borderBottom: "1px solid #4b5563",
+
+const sectionStyle = {
+  maxWidth: "1250px",
+  margin: "0 auto 45px",
+  padding: "38px",
+  background: "#1e293b",
+  border: "1px solid #475569",
+  borderRadius: "22px",
+  boxShadow:
+    "0 10px 35px rgba(0,0,0,0.25)",
+  boxSizing: "border-box"
+};
+
+
+const sectionHeading = {
+  fontSize: "32px",
+  marginTop: "0",
+  marginBottom: "28px",
+  color: "#ffffff"
+};
+
+
+const emptyBox = {
+  background: "#0f172a",
+  padding: "40px",
+  borderRadius: "16px",
+  textAlign: "center",
+  color: "#cbd5e1",
+  fontSize: "20px"
+};
+
+
+const tableWrapper = {
+  width: "100%",
+  overflowX: "auto"
+};
+
+
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
+  minWidth: "1000px"
+};
+
+
+const tableHeadRow = {
+  background: "#374151"
+};
+
+
+const thStyle = {
+  padding: "16px",
   textAlign: "left",
+  color: "#ffffff",
+  fontSize: "16px",
+  borderBottom:
+    "1px solid #64748b"
 };
+
+
+const tdStyle = {
+  padding: "16px",
+  color: "#f8fafc",
+  fontSize: "15px",
+  borderBottom:
+    "1px solid #475569"
+};
+
+
+const approveButton = {
+  padding: "10px 14px",
+  marginRight: "8px",
+  marginBottom: "5px",
+  background: "#16a34a",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "7px",
+  fontWeight: "bold",
+  cursor: "pointer"
+};
+
+
+const rejectButton = {
+  padding: "10px 14px",
+  background: "#dc2626",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "7px",
+  fontWeight: "bold",
+  cursor: "pointer"
+};
+
+
+const deleteButton = {
+  padding: "10px 16px",
+  background: "#dc2626",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "7px",
+  fontWeight: "bold",
+  cursor: "pointer"
+};
+
+
+const approvedBadge = {
+  background: "#166534",
+  color: "#bbf7d0",
+  padding: "7px 12px",
+  borderRadius: "20px",
+  fontWeight: "bold"
+};
+
+
+const rejectedBadge = {
+  background: "#7f1d1d",
+  color: "#fecaca",
+  padding: "7px 12px",
+  borderRadius: "20px",
+  fontWeight: "bold"
+};
+
+
+const pendingBadge = {
+  background: "#854d0e",
+  color: "#fef08a",
+  padding: "7px 12px",
+  borderRadius: "20px",
+  fontWeight: "bold"
+};
+
+
+const courseGrid = {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(250px, 1fr))",
+  gap: "20px"
+};
+
+
+const courseCard = {
+  background: "#0f172a",
+  border: "1px solid #475569",
+  borderRadius: "15px",
+  padding: "25px"
+};
+
+
+const courseTitle = {
+  color: "#ffffff",
+  fontSize: "24px",
+  marginTop: "0"
+};
+
+
+const courseDescription = {
+  color: "#cbd5e1",
+  lineHeight: "1.6"
+};
+
+
+const instructorText = {
+  color: "#e2e8f0"
+};
+
 
 export default Admin;
