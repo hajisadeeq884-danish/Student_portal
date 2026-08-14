@@ -1,180 +1,229 @@
-import React, { useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 const API_URL =
   "https://student-portal-backend-401n.onrender.com";
 
 function Admin() {
-  const [pendingStudents, setPendingStudents] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [courses, setCourses] = useState([]);
+  const [pendingStudents, setPendingStudents] =
+    useState([]);
 
-  const [loadingPending, setLoadingPending] = useState(true);
-  const [loadingStudents, setLoadingStudents] = useState(true);
-  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [students, setStudents] =
+    useState([]);
 
-  const token = localStorage.getItem("token");
+  const [courses, setCourses] =
+    useState([]);
+
+  const [loadingPending, setLoadingPending] =
+    useState(true);
+
+  const [loadingStudents, setLoadingStudents] =
+    useState(true);
+
+  const [loadingCourses, setLoadingCourses] =
+    useState(true);
+
+  const token =
+    localStorage.getItem("token");
 
   // ==========================================
   // FETCH PENDING STUDENTS
   // ==========================================
 
-  const fetchPendingStudents = async () => {
-    try {
-      setLoadingPending(true);
-
-      const response = await fetch(
-        `${API_URL}/admin/pending-students`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-
-      const data = await response.json();
-
-      console.log("Pending students:", data);
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            data.message ||
-            "Failed to load pending students"
-        );
+  const fetchPendingStudents =
+    useCallback(async () => {
+      if (!token) {
+        setLoadingPending(false);
+        return;
       }
 
-      setPendingStudents(
-        Array.isArray(data) ? data : []
-      );
-    } catch (error) {
-      console.error(
-        "Pending students error:",
-        error
-      );
+      try {
+        setLoadingPending(true);
 
-      setPendingStudents([]);
-    } finally {
-      setLoadingPending(false);
-    }
-  };
+        const response = await fetch(
+          `${API_URL}/admin/pending-students`,
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              data.message ||
+              "Failed to load pending students"
+          );
+        }
+
+        setPendingStudents(
+          Array.isArray(data)
+            ? data
+            : []
+        );
+      } catch (error) {
+        console.error(
+          "Pending students error:",
+          error
+        );
+
+        setPendingStudents([]);
+      } finally {
+        setLoadingPending(false);
+      }
+    }, [token]);
 
   // ==========================================
   // FETCH ALL STUDENTS
   // ==========================================
 
-  const fetchStudents = async () => {
-    try {
-      setLoadingStudents(true);
-
-      const response = await fetch(
-        `${API_URL}/admin/students`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-
-      const data = await response.json();
-
-      console.log("All students:", data);
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            data.message ||
-            "Failed to load students"
-        );
+  const fetchStudents =
+    useCallback(async () => {
+      if (!token) {
+        setLoadingStudents(false);
+        return;
       }
 
-      setStudents(
-        Array.isArray(data) ? data : []
-      );
-    } catch (error) {
-      console.error(
-        "Students error:",
-        error
-      );
+      try {
+        setLoadingStudents(true);
 
-      setStudents([]);
-    } finally {
-      setLoadingStudents(false);
-    }
-  };
+        const response = await fetch(
+          `${API_URL}/admin/students`,
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              data.message ||
+              "Failed to load students"
+          );
+        }
+
+        setStudents(
+          Array.isArray(data)
+            ? data
+            : []
+        );
+      } catch (error) {
+        console.error(
+          "Students error:",
+          error
+        );
+
+        setStudents([]);
+      } finally {
+        setLoadingStudents(false);
+      }
+    }, [token]);
 
   // ==========================================
   // FETCH COURSES
   // ==========================================
 
-  const fetchCourses = async () => {
-    try {
-      setLoadingCourses(true);
-
-      const response = await fetch(
-        `${API_URL}/admin/courses`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-
-      const data = await response.json();
-
-      console.log("Courses:", data);
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            data.message ||
-            "Failed to load courses"
-        );
+  const fetchCourses =
+    useCallback(async () => {
+      if (!token) {
+        setLoadingCourses(false);
+        return;
       }
 
-      setCourses(
-        Array.isArray(data) ? data : []
-      );
-    } catch (error) {
-      console.error(
-        "Courses error:",
-        error
-      );
+      try {
+        setLoadingCourses(true);
 
-      setCourses([]);
-    } finally {
-      setLoadingCourses(false);
-    }
-  };
+        const response = await fetch(
+          `${API_URL}/admin/courses`,
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              data.message ||
+              "Failed to load courses"
+          );
+        }
+
+        setCourses(
+          Array.isArray(data)
+            ? data
+            : []
+        );
+      } catch (error) {
+        console.error(
+          "Courses error:",
+          error
+        );
+
+        setCourses([]);
+      } finally {
+        setLoadingCourses(false);
+      }
+    }, [token]);
 
   // ==========================================
   // LOAD EVERYTHING
   // ==========================================
 
-  const loadData = () => {
-    if (!token) {
-      alert("Admin login required.");
-      return;
-    }
+  const loadData =
+    useCallback(async () => {
+      if (!token) {
+        alert("Admin login required.");
+        return;
+      }
 
-    fetchPendingStudents();
-    fetchStudents();
-    fetchCourses();
-  };
+      await Promise.all([
+        fetchPendingStudents(),
+        fetchStudents(),
+        fetchCourses(),
+      ]);
+    }, [
+      token,
+      fetchPendingStudents,
+      fetchStudents,
+      fetchCourses,
+    ]);
 
   // ==========================================
   // INITIAL LOAD
   // ==========================================
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     loadData();
-  }, []);
+  }, [loadData]);
 
   // ==========================================
   // APPROVE STUDENT
@@ -187,13 +236,16 @@ function Admin() {
         {
           method: "PUT",
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            Authorization:
+              `Bearer ${token}`,
+            "Content-Type":
+              "application/json",
+          },
         }
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -203,9 +255,11 @@ function Admin() {
         );
       }
 
-      alert("Student approved successfully!");
+      alert(
+        "Student approved successfully!"
+      );
 
-      loadData();
+      await loadData();
     } catch (error) {
       console.error(
         "Approve error:",
@@ -221,9 +275,10 @@ function Admin() {
   // ==========================================
 
   const rejectStudent = async (id) => {
-    const confirmReject = window.confirm(
-      "Are you sure you want to reject this student?"
-    );
+    const confirmReject =
+      window.confirm(
+        "Are you sure you want to reject this student?"
+      );
 
     if (!confirmReject) {
       return;
@@ -235,13 +290,16 @@ function Admin() {
         {
           method: "PUT",
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            Authorization:
+              `Bearer ${token}`,
+            "Content-Type":
+              "application/json",
+          },
         }
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -253,7 +311,7 @@ function Admin() {
 
       alert("Student rejected.");
 
-      loadData();
+      await loadData();
     } catch (error) {
       console.error(
         "Reject error:",
@@ -269,9 +327,10 @@ function Admin() {
   // ==========================================
 
   const deleteStudent = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this student?"
-    );
+    const confirmDelete =
+      window.confirm(
+        "Are you sure you want to delete this student?"
+      );
 
     if (!confirmDelete) {
       return;
@@ -283,13 +342,16 @@ function Admin() {
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            Authorization:
+              `Bearer ${token}`,
+            "Content-Type":
+              "application/json",
+          },
         }
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -299,9 +361,11 @@ function Admin() {
         );
       }
 
-      alert("Student deleted successfully.");
+      alert(
+        "Student deleted successfully."
+      );
 
-      loadData();
+      await loadData();
     } catch (error) {
       console.error(
         "Delete error:",
@@ -330,27 +394,26 @@ function Admin() {
   return (
     <div style={pageStyle}>
 
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
 
       <div style={headerStyle}>
-
         <div>
           <h1 style={mainHeadingStyle}>
             Admin Dashboard
           </h1>
 
           <p style={welcomeStyle}>
-            Manage students, approvals and courses.
+            Manage students, approvals and
+            courses.
           </p>
         </div>
 
         <div style={headerButtons}>
-
           <button
             onClick={loadData}
             style={refreshButton}
           >
-            Refresh
+            🔄 Refresh
           </button>
 
           <button
@@ -359,14 +422,12 @@ function Admin() {
           >
             Logout
           </button>
-
         </div>
       </div>
 
-      {/* ================= PENDING STUDENTS ================= */}
+      {/* PENDING STUDENTS */}
 
       <section style={sectionStyle}>
-
         <h2 style={sectionHeading}>
           Pending Student Approvals
         </h2>
@@ -375,100 +436,110 @@ function Admin() {
           <div style={emptyBox}>
             Loading pending students...
           </div>
-        ) : pendingStudents.length === 0 ? (
+        ) : pendingStudents.length ===
+          0 ? (
           <div style={emptyBox}>
             No pending students.
           </div>
         ) : (
-
           <div style={tableWrapper}>
-
             <table style={tableStyle}>
-
               <thead>
                 <tr style={tableHeadRow}>
-                  <th style={thStyle}>Name</th>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Department</th>
-                  <th style={thStyle}>Semester</th>
-                  <th style={thStyle}>Roll Number</th>
-                  <th style={thStyle}>Actions</th>
+                  <th style={thStyle}>
+                    Name
+                  </th>
+
+                  <th style={thStyle}>
+                    Email
+                  </th>
+
+                  <th style={thStyle}>
+                    Department
+                  </th>
+
+                  <th style={thStyle}>
+                    Semester
+                  </th>
+
+                  <th style={thStyle}>
+                    Roll Number
+                  </th>
+
+                  <th style={thStyle}>
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
+                {pendingStudents.map(
+                  (student) => (
+                    <tr
+                      key={student._id}
+                    >
+                      <td style={tdStyle}>
+                        {student.name}
+                      </td>
 
-                {pendingStudents.map((student) => (
+                      <td style={tdStyle}>
+                        {student.email}
+                      </td>
 
-                  <tr key={student._id}>
+                      <td style={tdStyle}>
+                        {student.department ||
+                          "Not provided"}
+                      </td>
 
-                    <td style={tdStyle}>
-                      {student.name}
-                    </td>
+                      <td style={tdStyle}>
+                        {student.semester ||
+                          "Not provided"}
+                      </td>
 
-                    <td style={tdStyle}>
-                      {student.email}
-                    </td>
+                      <td style={tdStyle}>
+                        {student.rollNumber ||
+                          "Not provided"}
+                      </td>
 
-                    <td style={tdStyle}>
-                      {student.department ||
-                        "Not provided"}
-                    </td>
+                      <td style={tdStyle}>
+                        <button
+                          onClick={() =>
+                            approveStudent(
+                              student._id
+                            )
+                          }
+                          style={
+                            approveButton
+                          }
+                        >
+                          Approve
+                        </button>
 
-                    <td style={tdStyle}>
-                      {student.semester ||
-                        "Not provided"}
-                    </td>
-
-                    <td style={tdStyle}>
-                      {student.rollNumber ||
-                        "Not provided"}
-                    </td>
-
-                    <td style={tdStyle}>
-
-                      <button
-                        onClick={() =>
-                          approveStudent(
-                            student._id
-                          )
-                        }
-                        style={approveButton}
-                      >
-                        Approve
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          rejectStudent(
-                            student._id
-                          )
-                        }
-                        style={rejectButton}
-                      >
-                        Reject
-                      </button>
-
-                    </td>
-
-                  </tr>
-
-                ))}
-
+                        <button
+                          onClick={() =>
+                            rejectStudent(
+                              student._id
+                            )
+                          }
+                          style={
+                            rejectButton
+                          }
+                        >
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
-
             </table>
-
           </div>
-
         )}
-
       </section>
 
-      {/* ================= COURSES ================= */}
+      {/* COURSES */}
 
       <section style={sectionStyle}>
-
         <h2 style={sectionHeading}>
           Available Courses
         </h2>
@@ -478,49 +549,49 @@ function Admin() {
             Loading courses...
           </div>
         ) : courses.length === 0 ? (
-
           <div style={emptyBox}>
             No courses available.
           </div>
-
         ) : (
-
           <div style={courseGrid}>
-
             {courses.map((course) => (
-
               <div
                 key={course._id}
                 style={courseCard}
               >
-
                 <h3 style={courseTitle}>
                   {course.title}
                 </h3>
 
-                <p style={courseDescription}>
-                  {course.description}
+                <p
+                  style={
+                    courseDescription
+                  }
+                >
+                  {course.description ||
+                    "No description available."}
                 </p>
 
-                <p style={instructorText}>
-                  <strong>Instructor:</strong>{" "}
-                  {course.instructor}
+                <p
+                  style={
+                    instructorText
+                  }
+                >
+                  <strong>
+                    Instructor:
+                  </strong>{" "}
+                  {course.instructor ||
+                    "Not provided"}
                 </p>
-
               </div>
-
             ))}
-
           </div>
-
         )}
-
       </section>
 
-      {/* ================= ALL STUDENTS ================= */}
+      {/* ALL STUDENTS */}
 
       <section style={sectionStyle}>
-
         <h2 style={sectionHeading}>
           All Students
         </h2>
@@ -530,21 +601,14 @@ function Admin() {
             Loading students...
           </div>
         ) : students.length === 0 ? (
-
           <div style={emptyBox}>
             No students found.
           </div>
-
         ) : (
-
           <div style={tableWrapper}>
-
             <table style={tableStyle}>
-
               <thead>
-
                 <tr style={tableHeadRow}>
-
                   <th style={thStyle}>
                     Name
                   </th>
@@ -568,90 +632,79 @@ function Admin() {
                   <th style={thStyle}>
                     Action
                   </th>
-
                 </tr>
-
               </thead>
 
               <tbody>
+                {students.map(
+                  (student) => (
+                    <tr
+                      key={student._id}
+                    >
+                      <td style={tdStyle}>
+                        {student.name}
+                      </td>
 
-                {students.map((student) => (
+                      <td style={tdStyle}>
+                        {student.email}
+                      </td>
 
-                  <tr key={student._id}>
+                      <td style={tdStyle}>
+                        {student.department ||
+                          "Not provided"}
+                      </td>
 
-                    <td style={tdStyle}>
-                      {student.name}
-                    </td>
+                      <td style={tdStyle}>
+                        {student.semester ||
+                          "Not provided"}
+                      </td>
 
-                    <td style={tdStyle}>
-                      {student.email}
-                    </td>
+                      <td style={tdStyle}>
+                        <span
+                          style={
+                            student.approvalStatus ===
+                            "approved"
+                              ? approvedBadge
+                              : student.approvalStatus ===
+                                "rejected"
+                              ? rejectedBadge
+                              : pendingBadge
+                          }
+                        >
+                          {student.approvalStatus ||
+                            "pending"}
+                        </span>
+                      </td>
 
-                    <td style={tdStyle}>
-                      {student.department ||
-                        "Not provided"}
-                    </td>
-
-                    <td style={tdStyle}>
-                      {student.semester ||
-                        "Not provided"}
-                    </td>
-
-                    <td style={tdStyle}>
-
-                      <span
-                        style={
-                          student.approvalStatus ===
-                          "approved"
-                            ? approvedBadge
-                            : student.approvalStatus ===
-                              "rejected"
-                            ? rejectedBadge
-                            : pendingBadge
-                        }
-                      >
-                        {student.approvalStatus ||
-                          "pending"}
-                      </span>
-
-                    </td>
-
-                    <td style={tdStyle}>
-
-                      <button
-                        onClick={() =>
-                          deleteStudent(
-                            student._id
-                          )
-                        }
-                        style={deleteButton}
-                      >
-                        Delete
-                      </button>
-
-                    </td>
-
-                  </tr>
-
-                ))}
-
+                      <td style={tdStyle}>
+                        <button
+                          onClick={() =>
+                            deleteStudent(
+                              student._id
+                            )
+                          }
+                          style={
+                            deleteButton
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
-
             </table>
-
           </div>
-
         )}
-
       </section>
-
     </div>
   );
 }
 
-/* =====================================================
-   STYLES
-===================================================== */
+// ==========================================
+// STYLES
+// ==========================================
 
 const pageStyle = {
   minHeight: "100vh",
@@ -661,7 +714,7 @@ const pageStyle = {
   padding: "30px",
   boxSizing: "border-box",
   fontFamily:
-    "Arial, Helvetica, sans-serif"
+    "Arial, Helvetica, sans-serif",
 };
 
 const headerStyle = {
@@ -670,24 +723,24 @@ const headerStyle = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  gap: "20px"
+  gap: "20px",
 };
 
 const mainHeadingStyle = {
   fontSize: "48px",
   margin: "0",
-  color: "#ffffff"
+  color: "#ffffff",
 };
 
 const welcomeStyle = {
   color: "#cbd5e1",
   fontSize: "18px",
-  marginTop: "8px"
+  marginTop: "8px",
 };
 
 const headerButtons = {
   display: "flex",
-  gap: "12px"
+  gap: "12px",
 };
 
 const refreshButton = {
@@ -699,8 +752,6 @@ const refreshButton = {
   fontSize: "17px",
   fontWeight: "bold",
   cursor: "pointer",
-  boxShadow:
-    "0 8px 20px rgba(37,99,235,0.35)"
 };
 
 const logoutButton = {
@@ -711,7 +762,7 @@ const logoutButton = {
   borderRadius: "10px",
   fontSize: "17px",
   fontWeight: "bold",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const sectionStyle = {
@@ -723,14 +774,14 @@ const sectionStyle = {
   borderRadius: "22px",
   boxShadow:
     "0 10px 35px rgba(0,0,0,0.25)",
-  boxSizing: "border-box"
+  boxSizing: "border-box",
 };
 
 const sectionHeading = {
   fontSize: "36px",
   marginTop: "0",
   marginBottom: "28px",
-  color: "#ffffff"
+  color: "#ffffff",
 };
 
 const emptyBox = {
@@ -739,22 +790,22 @@ const emptyBox = {
   borderRadius: "16px",
   textAlign: "center",
   color: "#cbd5e1",
-  fontSize: "22px"
+  fontSize: "22px",
 };
 
 const tableWrapper = {
   width: "100%",
-  overflowX: "auto"
+  overflowX: "auto",
 };
 
 const tableStyle = {
   width: "100%",
   borderCollapse: "collapse",
-  minWidth: "850px"
+  minWidth: "850px",
 };
 
 const tableHeadRow = {
-  background: "#374151"
+  background: "#374151",
 };
 
 const thStyle = {
@@ -763,7 +814,7 @@ const thStyle = {
   color: "#ffffff",
   fontSize: "17px",
   borderBottom:
-    "1px solid #64748b"
+    "1px solid #64748b",
 };
 
 const tdStyle = {
@@ -771,7 +822,7 @@ const tdStyle = {
   color: "#f8fafc",
   fontSize: "16px",
   borderBottom:
-    "1px solid #475569"
+    "1px solid #475569",
 };
 
 const approveButton = {
@@ -782,7 +833,7 @@ const approveButton = {
   border: "none",
   borderRadius: "7px",
   fontWeight: "bold",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const rejectButton = {
@@ -792,7 +843,7 @@ const rejectButton = {
   border: "none",
   borderRadius: "7px",
   fontWeight: "bold",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const deleteButton = {
@@ -802,7 +853,7 @@ const deleteButton = {
   border: "none",
   borderRadius: "7px",
   fontWeight: "bold",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 const approvedBadge = {
@@ -810,7 +861,7 @@ const approvedBadge = {
   color: "#bbf7d0",
   padding: "7px 12px",
   borderRadius: "20px",
-  fontWeight: "bold"
+  fontWeight: "bold",
 };
 
 const rejectedBadge = {
@@ -818,7 +869,7 @@ const rejectedBadge = {
   color: "#fecaca",
   padding: "7px 12px",
   borderRadius: "20px",
-  fontWeight: "bold"
+  fontWeight: "bold",
 };
 
 const pendingBadge = {
@@ -826,36 +877,36 @@ const pendingBadge = {
   color: "#fef08a",
   padding: "7px 12px",
   borderRadius: "20px",
-  fontWeight: "bold"
+  fontWeight: "bold",
 };
 
 const courseGrid = {
   display: "grid",
   gridTemplateColumns:
     "repeat(auto-fit, minmax(250px, 1fr))",
-  gap: "20px"
+  gap: "20px",
 };
 
 const courseCard = {
   background: "#0f172a",
   border: "1px solid #475569",
   borderRadius: "15px",
-  padding: "25px"
+  padding: "25px",
 };
 
 const courseTitle = {
   color: "#ffffff",
   fontSize: "24px",
-  marginTop: "0"
+  marginTop: "0",
 };
 
 const courseDescription = {
   color: "#cbd5e1",
-  lineHeight: "1.6"
+  lineHeight: "1.6",
 };
 
 const instructorText = {
-  color: "#e2e8f0"
+  color: "#e2e8f0",
 };
 
 export default Admin;
