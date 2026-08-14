@@ -5,6 +5,10 @@ require("dotenv").config();
 
 const app = express();
 
+// =====================================
+// MIDDLEWARE
+// =====================================
+
 app.use(express.json());
 
 app.use(
@@ -17,16 +21,31 @@ app.use(
   })
 );
 
-// Routes
+// =====================================
+// ROUTES
+// =====================================
+
 const authRoutes = require("./routes/auth");
 const courseRoutes = require("./routes/course");
 const adminRoutes = require("./routes/admin");
+const notificationRoutes = require("./routes/notifications");
+
+// =====================================
+// USE ROUTES
+// =====================================
 
 app.use("/auth", authRoutes);
+
 app.use("/courses", courseRoutes);
+
 app.use("/admin", adminRoutes);
 
-// Home
+app.use("/notifications", notificationRoutes);
+
+// =====================================
+// HOME
+// =====================================
+
 app.get("/", (req, res) => {
   res.json({
     message: "Student Portal API is running",
@@ -34,14 +53,30 @@ app.get("/", (req, res) => {
   });
 });
 
-// Auth test
+// =====================================
+// AUTH TEST
+// =====================================
+
 app.get("/auth/test", (req, res) => {
   res.json({
     message: "Auth route is working"
   });
 });
 
-// 404
+// =====================================
+// NOTIFICATION TEST
+// =====================================
+
+app.get("/notifications/test", (req, res) => {
+  res.json({
+    message: "Notification route is working"
+  });
+});
+
+// =====================================
+// 404 ROUTE
+// =====================================
+
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
@@ -50,7 +85,10 @@ app.use((req, res) => {
   });
 });
 
-// MongoDB
+// =====================================
+// MONGODB
+// =====================================
+
 mongoose
   .connect(process.env.DB_STRING, {
     dbName: "studentPortal"
@@ -61,6 +99,10 @@ mongoose
   .catch((err) => {
     console.error("MongoDB connection error:", err);
   });
+
+// =====================================
+// SERVER
+// =====================================
 
 const PORT = process.env.PORT || 5000;
 
